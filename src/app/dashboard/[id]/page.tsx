@@ -25,6 +25,8 @@ export default function DeploymentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchDeployment = async () => {
     try {
@@ -174,6 +176,31 @@ export default function DeploymentDetailPage() {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
+    }
+  };
+
+  const handleDeleteDeployment = async () => {
+    if (!id) return;
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`/api/deployments/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete deployment");
+      }
+
+      // Redirect to dashboard on success
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Failed to delete deployment");
+      setShowDeleteConfirm(false);
+      console.error(err);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -348,6 +375,17 @@ export default function DeploymentDetailPage() {
                       )}
                   </div>
                 </div>
+
+                {/* Delete Button */}
+                <div className="mt-8 pt-6 border-t border-white/10">
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="px-6 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={deleting}
+                  >
+                    Delete Deployment
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -367,6 +405,65 @@ export default function DeploymentDetailPage() {
           </a>
         </p>
       </footer>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowDeleteConfirm(false);
+              }
+            }}
+          >
+            <motion.div
+              className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Delete Deployment
+              </h2>
+              <p className="text-slate-300 mb-6">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-white">
+                  {deployment?.name}
+                </span>
+                ? This action cannot be undone and will also delete the
+                associated Neon project.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-white/10 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteDeployment}
+                  className="px-5 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-semibold rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  disabled={deleting}
+                >
+                  {deleting && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400 border-t-transparent"></div>
+                  )}
+                  {deleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

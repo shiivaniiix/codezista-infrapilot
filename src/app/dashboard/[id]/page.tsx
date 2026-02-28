@@ -13,6 +13,7 @@ interface Deployment {
   neonDatabaseUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  environment: string;
 }
 
 export default function DeploymentDetailPage() {
@@ -71,6 +72,35 @@ export default function DeploymentDetailPage() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  const getEnvironmentBadge = (environment: string) => {
+    switch (environment) {
+      case "DEV":
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+            {environment}
+          </span>
+        );
+      case "UAT":
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">
+            {environment}
+          </span>
+        );
+      case "PROD":
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
+            {environment}
+          </span>
+        );
+      default:
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-500/20 text-slate-400">
+            {environment}
+          </span>
+        );
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -221,6 +251,14 @@ export default function DeploymentDetailPage() {
                     <p className="mt-2 text-lg font-medium text-white">
                       {deployment.name}
                     </p>
+                  </div>
+
+                  {/* Environment */}
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      Environment
+                    </label>
+                    <div className="mt-2">{getEnvironmentBadge(deployment.environment)}</div>
                   </div>
 
                   {/* Status */}

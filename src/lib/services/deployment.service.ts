@@ -1,16 +1,18 @@
 import prisma from "../db/prisma";
 import { createNeonProject } from "../providers/neon";
-import { Deployment, DeploymentStatus } from "@prisma/client";
+import { Deployment, DeploymentStatus, Environment } from "@prisma/client";
 
 export async function createDeployment(
   name: string,
-  userId: string
+  userId: string,
+  environment: Environment = Environment.DEV
 ): Promise<Deployment> {
   const deployment = await prisma.deployment.create({
     data: {
       name,
       status: DeploymentStatus.PROVISIONING,
       userId,
+      environment,
     },
   });
 

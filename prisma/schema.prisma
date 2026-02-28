@@ -22,6 +22,12 @@ enum DeploymentStatus {
   FAILED
 }
 
+enum Environment {
+  DEV
+  UAT
+  PROD
+}
+
 model User {
   id           String       @id @default(cuid())
   email        String       @unique
@@ -31,20 +37,16 @@ model User {
 }
 
 model Deployment {
-  id                  String            @id @default(cuid())
-  userId              String
-  name                String
+  id               String        @id @default(cuid())
+  name             String
+  userId           String
+  status           DeploymentStatus
+  neonProjectId    String?
+  neonDatabaseUrl  String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  neonProjectId       String?           // optional
-  neonDatabaseUrl     String?           // optional
-  vercelProjectId     String?           // optional
-  vercelDeploymentId  String?
-  deploymentUrl       String?
+  environment      Environment   @default(DEV)
 
-  status              DeploymentStatus  @default(PENDING)
-
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-
-  user                User              @relation(fields: [userId], references: [id])
+  user             User          @relation(fields: [userId], references: [id])
 }

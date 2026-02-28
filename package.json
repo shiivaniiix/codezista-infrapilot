@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^5.14.0",
     "framer-motion": "^12.34.3",
     "next": "16.1.6",
     "prisma": "^5.14.0",

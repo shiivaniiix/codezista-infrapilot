@@ -14,6 +14,7 @@ export async function GET() {
         status: true,
         neonProjectId: true,
         createdAt: true,
+        environment: true,
       },
     });
 
@@ -33,7 +34,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name } = body;
+  const { name, environment } = body;
 
   if (!name) {
     return NextResponse.json(
@@ -46,7 +47,8 @@ export async function POST(req: NextRequest) {
     // Temporary fake userId for MVP
     const deployment = await createDeployment(
       name,
-      "temp-user-id"
+      "temp-user-id",
+      environment || "DEV"
     );
 
     return NextResponse.json(deployment);

@@ -10,14 +10,18 @@ interface Deployment {
   status: string;
   neonProjectId: string;
   createdAt: string;
+  environment: string;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
   const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [filteredDeployments, setFilteredDeployments] = useState<Deployment[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>("All");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [deploymentName, setDeploymentName] = useState("");
+  const [environment, setEnvironment] = useState<string>("DEV");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +34,7 @@ export default function DashboardPage() {
       }
       const data = await response.json();
       setDeployments(data);
+      setFilteredDeployments(data);
       setError(null);
     } catch (err) {
       setError("Failed to load deployments");
@@ -42,6 +47,17 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchDeployments();
   }, []);
+
+  // Filter deployments based on active filter
+  useEffect(() => {
+    if (activeFilter === "All") {
+      setFilteredDeployments(deployments);
+    } else {
+      setFilteredDeployments(
+        deployments.filter((d) => d.environment === activeFilter)
+      );
+    }
+  }, [activeFilter, deployments]);
 
   const handleCreateDeployment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +74,7 @@ export default function DashboardPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: deploymentName }),
+        body: JSON.stringify({ name: deploymentName, environment }),
       });
 
       if (!response.ok) {
@@ -67,6 +83,7 @@ export default function DashboardPage() {
       }
 
       setDeploymentName("");
+      setEnvironment("DEV");
       setShowModal(false);
       await fetchDeployments();
     } catch (err: any) {
@@ -79,6 +96,35 @@ export default function DashboardPage() {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  const getEnvironmentBadge = (environment: string) => {
+    switch (environment) {
+      case "DEV":
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+            {environment}
+          </span>
+        );
+      case "UAT":
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">
+            {environment}
+          </span>
+        );
+      case "PROD":
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
+            {environment}
+          </span>
+        );
+      default:
+        return (
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-500/20 text-slate-400">
+            {environment}
+          </span>
+        );
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -156,13 +202,37 @@ export default function DashboardPage() {
 
         {/* Deployments Section */}
         <div className="mt-12 max-w-5xl mx-auto">
+          {/* Filter Tabs */}
+          <div className="mb-4 flex gap-2 border-b border-white/10">
+            {["All", "DEV", "UAT", "PROD"].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-4 py-2 text-sm font-medium transition-all duration-200 relative ${
+                  activeFilter === filter
+                    ? "text-cyan-400"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                {filter}
+                {activeFilter === filter && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600"
+                    layoutId="activeFilter"
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+
           <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-cyan-500/10">
             {loading ? (
               <div className="p-16 text-center">
                 <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-slate-700 border-t-cyan-500"></div>
                 <p className="mt-4 text-slate-400">Loading deployments...</p>
               </div>
-            ) : deployments.length === 0 ? (
+            ) : filteredDeployments.length === 0 ? (
               <div className="p-16 text-center">
                 <p className="text-slate-400">No deployments found</p>
               </div>
@@ -172,6 +242,9 @@ export default function DashboardPage() {
                   <tr className="border-b border-white/10">
                     <th className="text-left text-sm text-slate-400 px-6 py-4">
                       Name
+                    </th>
+                    <th className="text-left text-sm text-slate-400 px-6 py-4">
+                      Environment
                     </th>
                     <th className="text-left text-sm text-slate-400 px-6 py-4">
                       Status
@@ -185,7 +258,7 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {deployments.map((deployment) => (
+                  {filteredDeployments.map((deployment) => (
                     <tr
                       key={deployment.id}
                       onClick={() => router.push(`/dashboard/${deployment.id}`)}
@@ -195,6 +268,9 @@ export default function DashboardPage() {
                         <span className="text-sm font-medium text-white">
                           {deployment.name}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getEnvironmentBadge(deployment.environment)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(deployment.status)}
@@ -245,6 +321,7 @@ export default function DashboardPage() {
               if (e.target === e.currentTarget) {
                 setShowModal(false);
                 setDeploymentName("");
+                setEnvironment("DEV");
                 setError(null);
               }
             }}
@@ -279,12 +356,32 @@ export default function DashboardPage() {
                     autoFocus
                   />
                 </div>
+                <div className="mb-6">
+                  <label
+                    htmlFor="environment"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
+                    Environment
+                  </label>
+                  <select
+                    id="environment"
+                    value={environment}
+                    onChange={(e) => setEnvironment(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500/50 transition-all duration-200"
+                    disabled={creating}
+                  >
+                    <option value="DEV">DEV</option>
+                    <option value="UAT">UAT</option>
+                    <option value="PROD">PROD</option>
+                  </select>
+                </div>
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       setShowModal(false);
                       setDeploymentName("");
+                      setEnvironment("DEV");
                       setError(null);
                     }}
                     className="px-4 py-2 text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-white/10 rounded-xl transition-all duration-200 disabled:opacity-50"

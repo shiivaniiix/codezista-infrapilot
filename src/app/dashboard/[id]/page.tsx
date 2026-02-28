@@ -16,12 +16,21 @@ interface Deployment {
   environment: string;
 }
 
+interface DeploymentEvent {
+  id: string;
+  deploymentId: string;
+  type: string;
+  message: string;
+  createdAt: string;
+}
+
 export default function DeploymentDetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
   const [deployment, setDeployment] = useState<Deployment | null>(null);
+  const [events, setEvents] = useState<DeploymentEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -52,9 +61,23 @@ export default function DeploymentDetailPage() {
     }
   };
 
+  const fetchEvents = async () => {
+    if (!id) return;
+    try {
+      const response = await fetch(`/api/deployments/${id}/events`);
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch events:", err);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchDeployment();
+      fetchEvents();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -65,6 +88,7 @@ export default function DeploymentDetailPage() {
 
     const interval = setInterval(() => {
       fetchDeployment(true);
+      fetchEvents();
     }, 5000);
 
     return () => clearInterval(interval);
@@ -152,6 +176,19 @@ export default function DeploymentDetailPage() {
       return urlObj.hostname || "N/A";
     } catch {
       return "N/A";
+    }
+  };
+
+  const getEventTypeColor = (type: string) => {
+    switch (type) {
+      case "CREATED":
+        return "bg-blue-500";
+      case "STATUS_CHANGED":
+        return "bg-cyan-500";
+      case "DELETED":
+        return "bg-red-500";
+      default:
+        return "bg-slate-500";
     }
   };
 
@@ -373,6 +410,53 @@ export default function DeploymentDetailPage() {
                     Delete Deployment
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Deployment Activity Timeline */}
+          <div className="max-w-4xl mx-auto mt-8">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-cyan-500/10">
+              <div className="p-8">
+                <h3 className="text-xl font-bold text-white mb-6">
+                  Deployment Activity
+                </h3>
+                {events.length === 0 ? (
+                  <p className="text-slate-400 text-sm">No events yet</p>
+                ) : (
+                  <div className="relative">
+                    {/* Timeline line */}
+                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-white/10"></div>
+                    <div className="space-y-6">
+                      {events.map((event, index) => (
+                        <div key={event.id} className="relative flex gap-4">
+                          {/* Circle indicator */}
+                          <div className="relative z-10 flex-shrink-0">
+                            <div
+                              className={`w-8 h-8 rounded-full ${getEventTypeColor(
+                                event.type
+                              )} border-4 border-slate-900`}
+                            ></div>
+                          </div>
+                          {/* Event content */}
+                          <div className="flex-1 pb-6">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-semibold text-white">
+                                {event.type}
+                              </span>
+                              <span className="text-xs text-slate-400">
+                                {formatDate(event.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-300">
+                              {event.message}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

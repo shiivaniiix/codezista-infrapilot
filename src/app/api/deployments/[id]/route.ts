@@ -68,7 +68,15 @@ export async function GET(
               if (mappedStatus !== deployment.status) {
                 deployment = await prisma.deployment.update({
                   where: { id },
-                  data: { status: mappedStatus },
+                  data: {
+                    status: mappedStatus,
+                    events: {
+                      create: {
+                        type: "STATUS_CHANGED",
+                        message: `Status updated to ${mappedStatus}`,
+                      },
+                    },
+                  },
                 });
               }
             }
@@ -139,7 +147,7 @@ export async function DELETE(
       }
     }
 
-    // Delete deployment from database
+    // Delete deployment from database (cascade will delete events)
     await prisma.deployment.delete({
       where: { id },
     });

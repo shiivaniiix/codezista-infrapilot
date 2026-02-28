@@ -13,6 +13,12 @@ export async function createDeployment(
       status: DeploymentStatus.PROVISIONING,
       userId,
       environment,
+      events: {
+        create: {
+          type: "CREATED",
+          message: `Deployment "${name}" created`,
+        },
+      },
     },
   });
 
@@ -26,6 +32,12 @@ export async function createDeployment(
         neonProjectId: projectId,
         neonDatabaseUrl: connectionString,
         status: "SUCCESS",
+        events: {
+          create: {
+            type: "STATUS_CHANGED",
+            message: `Status updated to SUCCESS`,
+          },
+        },
       },
     });
 
@@ -35,6 +47,12 @@ export async function createDeployment(
       where: { id: deployment.id },
       data: {
         status: DeploymentStatus.FAILED,
+        events: {
+          create: {
+            type: "STATUS_CHANGED",
+            message: `Status updated to FAILED: ${error instanceof Error ? error.message : "Unknown error"}`,
+          },
+        },
       },
     });
 

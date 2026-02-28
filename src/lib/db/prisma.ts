@@ -15,3 +15,5 @@ export const prisma = prismaClient;
 export default prismaClient;
 
 
+const orgId = process.env.NEON_ORG_ID;
+console.log("ORG ID FROM ENV:", orgId);

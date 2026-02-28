@@ -20,9 +20,14 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json(deployment);
-  } catch (error) {
+  } catch (error: any) {
+    console.error("DEPLOYMENT ERROR:", error);
+  
     return NextResponse.json(
-      { error: "Deployment failed" },
+      {
+        error: "Deployment failed",
+        message: error?.message,
+      },
       { status: 500 }
     );
   }

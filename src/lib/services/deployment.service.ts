@@ -1,6 +1,6 @@
 import prisma from "../db/prisma";
 import { createNeonProject } from "../providers/neon";
-import { Deployment } from "@prisma/client";
+import { Deployment, DeploymentStatus } from "@prisma/client";
 
 export async function createDeployment(
   name: string,
@@ -9,7 +9,7 @@ export async function createDeployment(
   const deployment = await prisma.deployment.create({
     data: {
       name,
-      status: "PROVISIONING",
+      status: DeploymentStatus.PROVISIONING,
       userId,
     },
   });
@@ -23,7 +23,7 @@ export async function createDeployment(
       data: {
         neonProjectId: projectId,
         neonDatabaseUrl: connectionString,
-        status: "READY",
+        status: "SUCCESS",
       },
     });
 
@@ -32,7 +32,7 @@ export async function createDeployment(
     await prisma.deployment.update({
       where: { id: deployment.id },
       data: {
-        status: "FAILED",
+        status: DeploymentStatus.FAILED,
       },
     });
 

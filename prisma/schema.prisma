@@ -33,15 +33,17 @@ model Deployment {
   id                  String            @id @default(cuid())
   userId              String
   name                String
-  neonProjectId       String
-  neonDatabaseUrl     String
-  vercelProjectId     String
+
+  neonProjectId       String?           // optional
+  neonDatabaseUrl     String?           // optional
+  vercelProjectId     String?           // optional
   vercelDeploymentId  String?
   deploymentUrl       String?
+
   status              DeploymentStatus  @default(PENDING)
+
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
   user                User              @relation(fields: [userId], references: [id])
 }
-

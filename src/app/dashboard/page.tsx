@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Deployment {
   id: string;
@@ -17,7 +18,6 @@ export default function DashboardPage() {
   const [deploymentName, setDeploymentName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   const fetchDeployments = async () => {
     try {
@@ -38,7 +38,6 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    setMounted(true);
     fetchDeployments();
   }, []);
 
@@ -84,32 +83,31 @@ export default function DashboardPage() {
     switch (status) {
       case "SUCCESS":
         return (
-          <span className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.3)] animate-pulse">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
             {status}
           </span>
         );
       case "FAILED":
         return (
-          <span className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-300 border border-red-500/30 shadow-[0_0_12px_rgba(239,68,68,0.2)]">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
             {status}
           </span>
         );
       case "PENDING":
         return (
-          <span className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border border-blue-500/30 relative overflow-hidden">
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite]"></span>
-            <span className="relative">{status}</span>
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 animate-pulse">
+            {status}
           </span>
         );
       case "PROVISIONING":
         return (
-          <span className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-300 border border-blue-500/30">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
             {status}
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full bg-slate-500/20 text-slate-300 border border-slate-500/30">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-500/20 text-slate-400">
             {status}
           </span>
         );
@@ -117,82 +115,49 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
-      {/* Animated Radial Gradient Background */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-950/20 via-slate-950 to-slate-950"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white relative overflow-hidden">
+      {/* Animated Background Circle */}
+      <div className="absolute top-[-200px] right-[-200px] w-[600px] h-[600px] bg-cyan-500 opacity-20 blur-3xl animate-pulse"></div>
 
-      {/* Background Grid Pattern */}
-      <div
-        className="fixed inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: "50px 50px",
-        }}
-      ></div>
-
-      {/* Floating Top Navigation */}
-      <nav className="sticky top-0 z-40 border-b border-blue-500/10 bg-slate-900/80 backdrop-blur-xl shadow-[0_0_20px_rgba(59,130,246,0.1)]">
-        <div className="max-w-7xl mx-auto px-6 py-5">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-white">InfraPilot</h1>
-              <p className="text-xs text-slate-400 mt-0.5">by Codezista</p>
-            </div>
-            <button
-              onClick={() => setShowModal(true)}
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:from-blue-500 hover:via-cyan-400 hover:to-teal-400 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)]"
-            >
-              Create Deployment
-            </button>
-          </div>
+      {/* Navbar */}
+      <nav className="sticky top-0 backdrop-blur-md bg-white/5 border-b border-white/10 flex justify-between items-center px-6 py-4 z-50">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">InfraPilot</h1>
+          <p className="text-xs text-slate-400">by Codezista</p>
         </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-105 transition-all duration-300 text-white font-medium"
+        >
+          Create Deployment
+        </button>
       </nav>
 
-      {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12">
-        <div
-          className={`transition-opacity duration-700 ${
-            mounted ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          {/* Hero Header Section */}
-          <div className="mb-12 text-center">
-            <h2 className="text-5xl font-bold mb-4">
-              <span className="text-white">Cloud </span>
-              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent animate-gradient">
-                Infrastructure
-              </span>
-              <span className="text-white"> Dashboard</span>
-            </h2>
-            <p className="text-slate-400 text-lg mt-3">
-              Manage and monitor your cloud infrastructure deployments
-            </p>
-            <div className="flex gap-4 justify-center mt-8">
-              <button
-                onClick={() => setShowModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:from-blue-500 hover:via-cyan-400 hover:to-teal-400 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(59,130,246,0.4)]"
-              >
-                New Deployment
-              </button>
-              <button className="px-6 py-3 border-2 border-slate-700 hover:border-blue-500/50 text-slate-300 hover:text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105">
-                View Docs
-              </button>
-            </div>
+      {/* Main Container */}
+      <div className="container mx-auto px-6 py-10">
+        {/* Hero Section */}
+        <div className="text-center mt-12">
+          <h2 className="text-4xl font-bold tracking-tight">
+            Cloud Infrastructure Dashboard
+          </h2>
+          <p className="mt-4 text-slate-400">
+            Manage and monitor your cloud infrastructure deployments
+          </p>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-6 p-4 bg-red-500/10 border border-red-500/30 text-red-300 rounded-xl">
+            {error}
           </div>
+        )}
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl backdrop-blur-sm transition-opacity duration-300 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-              {error}
-            </div>
-          )}
-
-          {/* Deployments Glass Card */}
-          <div className="bg-slate-900/40 backdrop-blur-md rounded-2xl shadow-xl border border-slate-800/50 overflow-hidden hover:border-blue-500/30 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-500">
+        {/* Deployments Section */}
+        <div className="mt-12 max-w-5xl mx-auto">
+          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-cyan-500/10">
             {loading ? (
               <div className="p-16 text-center">
-                <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-slate-700 border-t-blue-500"></div>
+                <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-slate-700 border-t-cyan-500"></div>
                 <p className="mt-4 text-slate-400">Loading deployments...</p>
               </div>
             ) : deployments.length === 0 ? (
@@ -200,169 +165,146 @@ export default function DashboardPage() {
                 <p className="text-slate-400">No deployments found</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-800/60 border-b border-slate-700/50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                        Neon Project ID
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                        Created At
-                      </th>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left text-sm text-slate-400 px-6 py-4">
+                      Name
+                    </th>
+                    <th className="text-left text-sm text-slate-400 px-6 py-4">
+                      Status
+                    </th>
+                    <th className="text-left text-sm text-slate-400 px-6 py-4">
+                      Neon Project ID
+                    </th>
+                    <th className="text-left text-sm text-slate-400 px-6 py-4">
+                      Created At
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {deployments.map((deployment) => (
+                    <tr
+                      key={deployment.id}
+                      className="px-6 py-4 hover:bg-white/5 transition duration-200"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-medium text-white">
+                          {deployment.name}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(deployment.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-slate-400 font-mono">
+                          {deployment.neonProjectId || "-"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-slate-400">
+                          {formatDate(deployment.createdAt)}
+                        </span>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/50">
-                    {deployments.map((deployment, index) => (
-                      <tr
-                        key={deployment.id}
-                        className="hover:bg-white/5 transition-all duration-300 cursor-pointer group hover:scale-[1.01]"
-                        style={{
-                          animationDelay: `${index * 30}ms`,
-                        }}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors duration-200">
-                            {deployment.name}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(deployment.status)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-slate-400 font-mono group-hover:text-slate-300 transition-colors">
-                            {deployment.neonProjectId || "-"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
-                            {formatDate(deployment.createdAt)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 mt-20 pb-8 text-center">
-        <p className="text-sm text-slate-500">
-          © 2026 Codezista — InfraPilot
-        </p>
-        <p className="text-xs text-slate-600 mt-1">
-          Support:{" "}
-          <a
-            href="mailto:infrapilot.user.support@gmail.com"
-            className="text-slate-400 hover:text-cyan-400 transition-colors duration-200"
-          >
-            infrapilot.user.support@gmail.com
-          </a>
-        </p>
-      </footer>
+        {/* Footer */}
+        <footer className="mt-16 text-center text-xs text-slate-500">
+          <p>© 2026 Codezista — InfraPilot</p>
+          <p className="mt-1">
+            Support:{" "}
+            <a
+              href="mailto:infrapilot.user.support@gmail.com"
+              className="text-slate-400 hover:text-cyan-400 transition-colors"
+            >
+              infrapilot.user.support@gmail.com
+            </a>
+          </p>
+        </footer>
+      </div>
 
       {/* Create Deployment Modal */}
-      {showModal && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-[fade-in_0.2s_ease-out]"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowModal(false);
-              setDeploymentName("");
-              setError(null);
-            }
-          }}
-        >
-          <div
-            className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border border-slate-700/50 shadow-2xl animate-[scale-in_0.2s_ease-out]"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowModal(false);
+                setDeploymentName("");
+                setError(null);
+              }
+            }}
           >
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Create Deployment
-            </h2>
-            <form onSubmit={handleCreateDeployment}>
-              <div className="mb-6">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-slate-300 mb-2"
-                >
-                  Deployment Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={deploymentName}
-                  onChange={(e) => setDeploymentName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500/50 transition-all duration-200"
-                  placeholder="Enter deployment name"
-                  disabled={creating}
-                  autoFocus
-                />
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setDeploymentName("");
-                    setError(null);
-                  }}
-                  className="px-4 py-2 text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-xl transition-all duration-200 disabled:opacity-50"
-                  disabled={creating}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 hover:from-blue-500 hover:via-cyan-400 hover:to-teal-400 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-                  disabled={creating}
-                >
-                  {creating && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  )}
-                  {creating ? "Creating..." : "Create"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Custom Animations */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
-          @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-          @keyframes scale-in {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-          }
-          @keyframes gradient {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-          }
-          .animate-gradient {
-            background-size: 200% auto;
-            animation: gradient 3s ease infinite;
-          }
-        `
-      }} />
+            <motion.div
+              className="bg-slate-900/95 backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border border-white/10 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-bold text-white mb-6">
+                Create Deployment
+              </h2>
+              <form onSubmit={handleCreateDeployment}>
+                <div className="mb-6">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
+                    Deployment Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={deploymentName}
+                    onChange={(e) => setDeploymentName(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500/50 transition-all duration-200"
+                    placeholder="Enter deployment name"
+                    disabled={creating}
+                    autoFocus
+                  />
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      setDeploymentName("");
+                      setError(null);
+                    }}
+                    className="px-4 py-2 text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-white/10 rounded-xl transition-all duration-200 disabled:opacity-50"
+                    disabled={creating}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold rounded-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    disabled={creating}
+                  >
+                    {creating && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    )}
+                    {creating ? "Creating..." : "Create"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

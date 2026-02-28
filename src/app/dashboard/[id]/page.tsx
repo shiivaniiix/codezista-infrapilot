@@ -28,7 +28,7 @@ export default function DeploymentDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchDeployment = async () => {
+  const fetchDeployment = async (isPolling = false) => {
     try {
       const response = await fetch(`/api/deployments/${id}`);
       if (!response.ok) {
@@ -41,10 +41,14 @@ export default function DeploymentDetailPage() {
       setDeployment(data);
       setError(null);
     } catch (err: any) {
-      setError(err.message || "Failed to load deployment");
+      if (!isPolling) {
+        setError(err.message || "Failed to load deployment");
+      }
       console.error(err);
     } finally {
-      setLoading(false);
+      if (!isPolling) {
+        setLoading(false);
+      }
     }
   };
 
@@ -55,22 +59,17 @@ export default function DeploymentDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Auto-refresh polling
+  // Auto-refresh polling for PROVISIONING status
   useEffect(() => {
-    if (!deployment) return;
-
-    const shouldPoll =
-      deployment.status !== "SUCCESS" && deployment.status !== "FAILED";
-
-    if (!shouldPoll) return;
+    if (!deployment || deployment.status !== "PROVISIONING") return;
 
     const interval = setInterval(() => {
-      fetchDeployment();
-    }, 4000);
+      fetchDeployment(true);
+    }, 5000);
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deployment?.status]);
+  }, [deployment?.status, id]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -121,8 +120,9 @@ export default function DeploymentDetailPage() {
         );
       case "PROVISIONING":
         return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 animate-pulse">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 animate-pulse">
             {status}
+            <div className="animate-spin rounded-full h-3 w-3 border-2 border-yellow-400 border-t-transparent"></div>
           </span>
         );
       default:

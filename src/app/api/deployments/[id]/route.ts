@@ -1,4 +1,5 @@
 import prisma from "../../../../lib/db/prisma";
+import { DeploymentStatus } from "@prisma/client";
 
 export async function GET(
   request: Request,
@@ -7,7 +8,7 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    const deployment = await prisma.deployment.findUnique({
+    let deployment = await prisma.deployment.findUnique({
       where: { id },
     });
 
@@ -15,6 +16,68 @@ export async function GET(
       return new Response(JSON.stringify({ error: "Not found" }), {
         status: 404,
       });
+    }
+
+    // Sync status from Neon API if project exists
+    if (deployment.neonProjectId) {
+      const apiKey = process.env.NEON_API_KEY;
+      if (apiKey) {
+        try {
+          const neonResponse = await fetch(
+            `https://console.neon.tech/api/v2/projects/${deployment.neonProjectId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+              },
+            }
+          );
+
+          if (neonResponse.ok) {
+            const neonData = (await neonResponse.json()) as {
+              project?: {
+                branch?: {
+                  current_state?: string;
+                };
+                endpoint?: {
+                  current_state?: string;
+                };
+              };
+            };
+
+            // Extract state from branch or endpoint
+            const state =
+              neonData.project?.branch?.current_state ||
+              neonData.project?.endpoint?.current_state;
+
+            if (state) {
+              // Map Neon state to our status
+              let mappedStatus: DeploymentStatus;
+              if (state === "init" || state === "creating") {
+                mappedStatus = DeploymentStatus.PROVISIONING;
+              } else if (state === "active" || state === "ready") {
+                mappedStatus = DeploymentStatus.SUCCESS;
+              } else if (state === "failed") {
+                mappedStatus = DeploymentStatus.FAILED;
+              } else {
+                // Unknown state, keep current status
+                mappedStatus = deployment.status as DeploymentStatus;
+              }
+
+              // Update if status changed
+              if (mappedStatus !== deployment.status) {
+                deployment = await prisma.deployment.update({
+                  where: { id },
+                  data: { status: mappedStatus },
+                });
+              }
+            }
+          }
+        } catch (neonError) {
+          console.error("Error syncing Neon status:", neonError);
+          // Continue with existing deployment data
+        }
+      }
     }
 
     return new Response(JSON.stringify(deployment), {

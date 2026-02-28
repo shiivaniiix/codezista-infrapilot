@@ -141,15 +141,9 @@ export default function DashboardPage() {
             {status}
           </span>
         );
-      case "PENDING":
-        return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 animate-pulse">
-            {status}
-          </span>
-        );
       case "PROVISIONING":
         return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 animate-pulse">
             {status}
           </span>
         );

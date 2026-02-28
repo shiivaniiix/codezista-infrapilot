@@ -15,9 +15,7 @@ datasource db {
 }
 
 enum DeploymentStatus {
-  PENDING
   PROVISIONING
-  DEPLOYING
   SUCCESS
   FAILED
 }

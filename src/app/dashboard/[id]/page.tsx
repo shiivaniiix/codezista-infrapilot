@@ -119,21 +119,9 @@ export default function DeploymentDetailPage() {
             {status}
           </span>
         );
-      case "PENDING":
-        return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 animate-pulse">
-            {status}
-          </span>
-        );
       case "PROVISIONING":
         return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
-            {status}
-          </span>
-        );
-      case "DEPLOYING":
-        return (
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400 animate-pulse">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400 animate-pulse">
             {status}
           </span>
         );
@@ -367,12 +355,11 @@ export default function DeploymentDetailPage() {
                   </label>
                   <div className="flex items-center gap-2">
                     {getStatusBadge(deployment.status)}
-                    {deployment.status !== "SUCCESS" &&
-                      deployment.status !== "FAILED" && (
-                        <span className="text-xs text-slate-400">
-                          (Auto-refreshing...)
-                        </span>
-                      )}
+                    {deployment.status === "PROVISIONING" && (
+                      <span className="text-xs text-slate-400">
+                        (Auto-refreshing...)
+                      </span>
+                    )}
                   </div>
                 </div>
 

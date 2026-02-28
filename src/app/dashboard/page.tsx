@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface Deployment {
   id: string;
@@ -12,6 +13,7 @@ interface Deployment {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -186,7 +188,8 @@ export default function DashboardPage() {
                   {deployments.map((deployment) => (
                     <tr
                       key={deployment.id}
-                      className="px-6 py-4 hover:bg-white/5 transition duration-200"
+                      onClick={() => router.push(`/dashboard/${deployment.id}`)}
+                      className="px-6 py-4 hover:bg-white/5 transition duration-200 cursor-pointer"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-medium text-white">
